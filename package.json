@@ -9,11 +9,16 @@
   "author": "jVeniciusDev",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.40.0",
     "colors": "^1.4.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "mongodb": "^5.6.0",
+    "express-async-handler": "^1.2.0",
+    "jwt-token": "^1.0.9",
+    "mongodb": "^5.9.0",
     "mongoose": "^7.1.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "react-router-dom": "^6.16.0"
   }
 }
