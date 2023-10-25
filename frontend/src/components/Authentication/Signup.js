@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 
 const Signup = () => {
   const [show, setShow] = useState();
@@ -90,6 +90,7 @@ const Signup = () => {
         isClosable: true,
         position: "bottom",
       });
+      setLoading(false);
       return;
     }
 
@@ -127,6 +128,7 @@ const Signup = () => {
         isClosable: true,
         position: "bottom",
       });
+      setLoading(false);
     }
   };
 
