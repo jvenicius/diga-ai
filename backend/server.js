@@ -1,5 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const cors = require("cors");
 const chats = require("./data/data");
 const connectDB = require("./config/db");
 const colors = require("colors");
@@ -19,7 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/user", userRoutes);
-app.use("/api/chat", chatRoutes)
+app.use("/api/chat", chatRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
