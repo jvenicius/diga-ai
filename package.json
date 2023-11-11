@@ -20,6 +20,7 @@
     "mongodb": "^5.9.0",
     "mongoose": "^7.1.0",
     "nodemon": "^2.0.22",
-    "react-router-dom": "^6.16.0"
+    "react-router-dom": "^6.16.0",
+    "socket.io": "^4.7.2"
   }
 }

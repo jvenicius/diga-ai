@@ -16,6 +16,10 @@ import UpdateGroupChatModel from "./miscellaneous/UpdateGroupChatModel";
 import axios from "axios";
 import "./styles.css";
 import ScrollableChat from "./ScrollableChat";
+import io from "socket.io-client";
+
+const ENDPOINT = "http://localhost:5000";
+var socket, selectedChatCompare;
 
 function SingleChat({ fetchAgain, setFetchAgain }) {
   const { user, selectedChat, setSelectedChat } = ChatState();
@@ -23,6 +27,9 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const toast = useToast();
 
@@ -46,7 +53,7 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
       setMessages(data);
       setLoading(false);
 
-      console.log(data);
+      socket.emit("join chat", selectedChat._id);
     } catch (error) {
       toast({
         title: "Ocorreu um erro!",
@@ -59,8 +66,36 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
     }
   };
 
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", () => setSocketConnected(true));
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
+  }, []);
+
+  useEffect(() => {
+    fetchMessages();
+
+    selectedChatCompare = selectedChat;
+  }, [selectedChat]);
+
+  useEffect(() => {
+    socket.on("message recieved", (newMessageRecieved) => {
+      if (
+        !selectedChatCompare ||
+        selectedChatCompare._id !== newMessageRecieved.chat._id
+      ) {
+        // Notification
+      } else {
+        setMessages([...messages, newMessageRecieved]);
+      }
+    });
+  });
+
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage) {
+      socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
           headers: {
@@ -79,9 +114,9 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
           config
         );
 
-        console.log(data);
-          
         setMessages([...messages, data]);
+
+        socket.emit("new message", data);
       } catch (error) {
         toast({
           title: "Ocorreu um erro",
@@ -97,11 +132,27 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
-  };
 
-  useEffect(() => {
-    fetchMessages();
-  }, [selectedChat]);
+    if (!socketConnected) return;
+
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", selectedChat._id);
+    }
+
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 3000;
+
+    setTimeout(() => {
+      var timeNow = new Date().getTime();
+      var timeDiff = Number(timeNow - lastTypingTime);
+
+      if (timeDiff >= timerLength && typing) {
+        socket.emit("stop typing", selectedChat._id);
+        setTyping(false);
+      }
+    }, timerLength);
+  };
 
   return (
     <>
@@ -163,6 +214,15 @@ function SingleChat({ fetchAgain, setFetchAgain }) {
               </div>
             )}
             <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+              {isTyping ? (
+                <div>
+                  <Text style={{ marginBottom: 15, marginLeft: 0 }}>
+                    Digitando...
+                  </Text>
+                </div>
+              ) : (
+                <></>
+              )}
               <Input
                 variant={"filled"}
                 bg={"#E0E0E0"}
