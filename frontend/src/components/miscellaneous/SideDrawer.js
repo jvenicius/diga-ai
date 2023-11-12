@@ -27,6 +27,7 @@ import { useHistory } from "react-router-dom";
 import ChatLoading from "../ChatLoading";
 import axios from "axios";
 import UserListItem from "../UserAvatar/UserListItem";
+import { getSender } from "../../config/ChatLogics";
 
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
@@ -35,7 +36,14 @@ const SideDrawer = () => {
   const [loadingChat, setLoadingChat] = useState();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const { user, setSelectedChat, chats, setChats } = ChatState();
+  const {
+    user,
+    setSelectedChat,
+    chats,
+    setChats,
+    notification,
+    setNotification,
+  } = ChatState();
 
   const history = useHistory();
 
@@ -130,7 +138,11 @@ const SideDrawer = () => {
         >
           <Button variant="ghost">
             <i className="fas fa-search"></i>
-            <Text display={{ base: "none", md: "flex" }} px="4px" onClick={onOpen}>
+            <Text
+              display={{ base: "none", md: "flex" }}
+              px="4px"
+              onClick={onOpen}
+            >
               Procurar usuário
             </Text>
           </Button>
@@ -142,9 +154,28 @@ const SideDrawer = () => {
         <div>
           <Menu>
             <MenuButton p={1}>
-              <BellIcon fontSize="2xl" m={1} />
+              <BellIcon
+                fontSize="2xl"
+                m={1}
+                color={notification.length > 0 ? "red" : "black"}
+              />
             </MenuButton>
-            {/* <MenuList></MenuList> */}
+            <MenuList>
+              {!notification.length && "Não há novas mensagens!"}
+              {notification.map((notif) => (
+                <MenuItem
+                  key={notif._id}
+                  onClick={() => {
+                    setSelectedChat(notif.chat);
+                    setNotification(notification.filter((n) => n !== notif));
+                  }}
+                >
+                  {notif.chat.isGroupChat
+                    ? `Nova mensagem no grupo ${notif.chat.chatName}`
+                    : `Nova mensagem de ${getSender(user, notif.chat.users)}`}
+                </MenuItem>
+              ))}
+            </MenuList>
           </Menu>
           <Menu>
             <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
